@@ -1,0 +1,69 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Histórico financeiro{% endblock %}
+{% block page_title %}Histórico / Planilha{% endblock %}
+{% block page_subtitle %}Veja todos os meses salvos no banco de dados.{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <div class="history-toolbar">
+        <form method="get" class="search-form">
+            <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar por ano, mês ou nível">
+            <button type="submit" class="btn btn-soft">Buscar</button>
+        </form>
+
+        <div class="toolbar-actions">
+            <a href="{% url 'financas:exportar_csv' %}" class="btn btn-success">Exportar CSV</a>
+            <a href="{% url 'financas:novo' %}" class="btn btn-primary">Novo mês</a>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mês/Ano</th>
+                    <th>Salário</th>
+                    <th>Contas</th>
+                    <th>Faturas</th>
+                    <th>Bicos</th>
+                    <th>Renda total</th>
+                    <th>Gastos</th>
+                    <th>Saldo</th>
+                    <th>Guardar</th>
+                    <th>Nível</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                    <tr>
+                        <td><strong>{{ registro.get_mes_display }}/{{ registro.ano }}</strong></td>
+                        <td>R$ {{ registro.salario }}</td>
+                        <td>R$ {{ registro.total_contas }}</td>
+                        <td>R$ {{ registro.total_faturas }}</td>
+                        <td>R$ {{ registro.total_bicos }}</td>
+                        <td>R$ {{ registro.renda_total }}</td>
+                        <td>R$ {{ registro.total_gastos }}</td>
+                        <td>R$ {{ registro.saldo_final }}</td>
+                        <td>R$ {{ registro.recomendacao_guardar }}</td>
+                        <td>
+                            <span class="tag {% if registro.nivel == 'Crítico' %}danger{% elif registro.nivel == 'Moderado' %}warning{% else %}success{% endif %}">
+                                {{ registro.nivel }}
+                            </span>
+                        </td>
+                        <td class="table-actions">
+                            <a href="{% url 'financas:detalhes' registro.pk %}" class="btn-mini soft">Detalhes</a>
+                            <a href="{% url 'financas:editar' registro.pk %}" class="btn-mini warning">Editar</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="11" class="empty">Nenhum mês salvo ainda.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Detalhes de {{ registro.get_mes_display }}/{{ registro.ano }}{% endblock %}
+{% block page_title %}{{ registro.get_mes_display }}/{{ registro.ano }}{% endblock %}
+{% block page_subtitle %}Resumo completo do mês selecionado.{% endblock %}
+
+{% block content %}
+<section class="summary-hero {% if registro.nivel == 'Crítico' %}critical{% elif registro.nivel == 'Moderado' %}moderate{% else %}smooth{% endif %}">
+    <div>
+        <span>Nível financeiro</span>
+        <h3>{{ registro.nivel }}</h3>
+        <p>{{ registro.mensagem }}</p>
+    </div>
+    <div class="hero-value">
+        <span>Saldo final</span>
+        <strong>R$ {{ registro.saldo_final }}</strong>
+    </div>
+</section>
+
+<section class="metrics-grid">
+    <div class="metric">
+        <span>Salário</span>
+        <strong>R$ {{ registro.salario }}</strong>
+    </div>
+    <div class="metric">
+        <span>Total de bicos</span>
+        <strong>R$ {{ registro.total_bicos }}</strong>
+    </div>
+    <div class="metric">
+        <span>Renda total</span>
+        <strong>R$ {{ registro.renda_total }}</strong>
+    </div>
+    <div class="metric">
+        <span>Total de gastos</span>
+        <strong>R$ {{ registro.total_gastos }}</strong>
+    </div>
+    <div class="metric">
+        <span>Contas fixas</span>
+        <strong>R$ {{ registro.total_contas }}</strong>
+    </div>
+    <div class="metric">
+        <span>Faturas</span>
+        <strong>R$ {{ registro.total_faturas }}</strong>
+    </div>
+    <div class="metric">
+        <span>Recomendação para guardar</span>
+        <strong>R$ {{ registro.recomendacao_guardar }}</strong>
+    </div>
+    <div class="metric">
+        <span>Atualizado em</span>
+        <strong>{{ registro.atualizado_em|date:"d/m/Y H:i" }}</strong>
+    </div>
+</section>
+
+<div class="three-columns">
+    <section class="panel">
+        <h3>Contas fixas</h3>
+        <div class="list-detail">
+            {% for item in contas %}
+                <div>
+                    <span>{{ item.nome }}</span>
+                    <strong>R$ {{ item.valor }}</strong>
+                </div>
+            {% empty %}
+                <p class="empty-small">Nenhuma conta fixa cadastrada.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>Faturas</h3>
+        <div class="list-detail">
+            {% for item in faturas %}
+                <div>
+                    <span>{{ item.nome }}</span>
+                    <strong>R$ {{ item.valor }}</strong>
+                </div>
+            {% empty %}
+                <p class="empty-small">Nenhuma fatura cadastrada.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>Bicos adicionados ao saldo</h3>
+        <div class="list-detail">
+            {% for item in bicos %}
+                <div>
+                    <span>{{ item.nome }}</span>
+                    <strong>R$ {{ item.valor }}</strong>
+                </div>
+            {% empty %}
+                <p class="empty-small">Nenhum bico cadastrado.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<div class="form-actions">
+    <a href="{% url 'financas:historico' %}" class="btn btn-dark">Voltar ao histórico</a>
+    <a href="{% url 'financas:editar' registro.pk %}" class="btn btn-warning">Editar mês</a>
+
+    <form method="post" action="{% url 'financas:excluir' registro.pk %}" onsubmit="return confirm('Deseja excluir este mês?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Excluir mês</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+{% block page_title %}{{ titulo_pagina }}{% endblock %}
+{% block page_subtitle %}
+Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no banco.
+{% endblock %}
+
+{% block content %}
+<form method="post" class="form-layout" id="financeForm">
+    {% csrf_token %}
+
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h3>Dados do mês</h3>
+                <p>Escolha o mês, ano e informe o salário principal.</p>
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="field">
+                <label for="mes">Mês</label>
+                <select name="mes" id="mes" required>
+                    <option value="1" {% if mes_atual == 1 %}selected{% endif %}>Janeiro</option>
+                    <option value="2" {% if mes_atual == 2 %}selected{% endif %}>Fevereiro</option>
+                    <option value="3" {% if mes_atual == 3 %}selected{% endif %}>Março</option>
+                    <option value="4" {% if mes_atual == 4 %}selected{% endif %}>Abril</option>
+                    <option value="5" {% if mes_atual == 5 %}selected{% endif %}>Maio</option>
+                    <option value="6" {% if mes_atual == 6 %}selected{% endif %}>Junho</option>
+                    <option value="7" {% if mes_atual == 7 %}selected{% endif %}>Julho</option>
+                    <option value="8" {% if mes_atual == 8 %}selected{% endif %}>Agosto</option>
+                    <option value="9" {% if mes_atual == 9 %}selected{% endif %}>Setembro</option>
+                    <option value="10" {% if mes_atual == 10 %}selected{% endif %}>Outubro</option>
+                    <option value="11" {% if mes_atual == 11 %}selected{% endif %}>Novembro</option>
+                    <option value="12" {% if mes_atual == 12 %}selected{% endif %}>Dezembro</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="ano">Ano</label>
+                <input type="number" name="ano" id="ano" value="{{ ano_atual }}" required>
+            </div>
+
+            <div class="field">
+                <label for="salario">Salário</label>
+                <input type="text" name="salario" id="salario" value="{% if registro %}{{ registro.salario }}{% endif %}" placeholder="Ex: 2500,00" required>
+            </div>
+        </div>
+    </section>
+
+    <div class="two-columns">
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h3>Contas fixas</h3>
+                    <p>Aluguel, energia, internet, água, mensalidade etc.</p>
+                </div>
+                <button type="button" class="btn btn-soft" onclick="addRow('conta')">+ Conta</button>
+            </div>
+
+            <div id="contaRows" class="rows">
+                {% for item in contas %}
+                    <div class="item-row">
+                        <input type="text" name="conta_nome[]" value="{{ item.nome }}" placeholder="Nome da conta">
+                        <input type="text" name="conta_valor[]" value="{{ item.valor }}" placeholder="Valor">
+                        <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                    </div>
+                {% empty %}
+                    <div class="item-row">
+                        <input type="text" name="conta_nome[]" placeholder="Ex: Internet">
+                        <input type="text" name="conta_valor[]" placeholder="Ex: 120,00">
+                        <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h3>Faturas previstas</h3>
+                    <p>Cartão, parcelas e gastos programados do mês.</p>
+                </div>
+                <button type="button" class="btn btn-warning" onclick="addRow('fatura')">+ Fatura</button>
+            </div>
+
+            <div id="faturaRows" class="rows">
+                {% for item in faturas %}
+                    <div class="item-row">
+                        <input type="text" name="fatura_nome[]" value="{{ item.nome }}" placeholder="Nome da fatura">
+                        <input type="text" name="fatura_valor[]" value="{{ item.valor }}" placeholder="Valor">
+                        <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                    </div>
+                {% empty %}
+                    <div class="item-row">
+                        <input type="text" name="fatura_nome[]" placeholder="Ex: Cartão Nubank">
+                        <input type="text" name="fatura_valor[]" placeholder="Ex: 450,00">
+                        <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <section class="panel panel-bicos">
+        <div class="panel-header">
+            <div>
+                <h3>Bicos adicionados ao saldo</h3>
+                <p>Cadastre a renda extra com nome e valor. Esse valor soma ao salário.</p>
+            </div>
+            <button type="button" class="btn btn-success" onclick="addRow('bico')">+ Bico</button>
+        </div>
+
+        <div id="bicoRows" class="rows">
+            {% for item in bicos %}
+                <div class="item-row">
+                    <input type="text" name="bico_nome[]" value="{{ item.nome }}" placeholder="Nome do bico">
+                    <input type="text" name="bico_valor[]" value="{{ item.valor }}" placeholder="Valor do bico">
+                    <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                </div>
+            {% empty %}
+                <div class="item-row">
+                    <input type="text" name="bico_nome[]" placeholder="Ex: Freela de design">
+                    <input type="text" name="bico_valor[]" placeholder="Ex: 150,00">
+                    <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="summary-live">
+        <div>
+            <span>Prévia do mês</span>
+            <strong id="previewTotal">R$ 0,00</strong>
+            <small>Renda total estimada</small>
+        </div>
+        <div>
+            <span>Gastos</span>
+            <strong id="previewExpenses">R$ 0,00</strong>
+            <small>Contas + faturas</small>
+        </div>
+        <div>
+            <span>Saldo</span>
+            <strong id="previewBalance">R$ 0,00</strong>
+            <small>Após gastos</small>
+        </div>
+        <div>
+            <span>Nível</span>
+            <strong id="previewLevel">-</strong>
+            <small>Crítico, moderado ou suave</small>
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            {% if modo == 'editar' %}Salvar alterações{% else %}Salvar mês no banco{% endif %}
+        </button>
+        <a href="{% url 'financas:historico' %}" class="btn btn-dark">Ver histórico</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function addRow(tipo) {
+        const container = document.getElementById(`${tipo}Rows`);
+
+        const labels = {
+            conta: ['conta_nome[]', 'conta_valor[]', 'Nome da conta', 'Valor'],
+            fatura: ['fatura_nome[]', 'fatura_valor[]', 'Nome da fatura', 'Valor'],
+            bico: ['bico_nome[]', 'bico_valor[]', 'Nome do bico', 'Valor do bico'],
+        };
+
+        const [nameField, valueField, namePlaceholder, valuePlaceholder] = labels[tipo];
+
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+            <input type="text" name="${nameField}" placeholder="${namePlaceholder}">
+            <input type="text" name="${valueField}" placeholder="${valuePlaceholder}">
+            <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+        `;
+
+        container.appendChild(row);
+    }
+
+    function removeRow(button) {
+        const row = button.closest('.item-row');
+        const container = row.parentElement;
+
+        if (container.children.length === 1) {
+            row.querySelectorAll('input').forEach(input => input.value = '');
+        } else {
+            row.remove();
+        }
+
+        updatePreview();
+    }
+
+    function parseMoney(value) {
+        const normalized = String(value || '')
+            .replace(/R\$/g, '')
+            .replace(/\s/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.');
+
+        const number = Number(normalized);
+        return Number.isFinite(number) && number >= 0 ? number : 0;
+    }
+
+    function formatMoney(value) {
+        return Number(value || 0).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        });
+    }
+
+    function sumInputs(selector) {
+        return [...document.querySelectorAll(selector)]
+            .reduce((total, input) => total + parseMoney(input.value), 0);
+    }
+
+    function updatePreview() {
+        const salary = parseMoney(document.getElementById('salario').value);
+        const contas = sumInputs('input[name="conta_valor[]"]');
+        const faturas = sumInputs('input[name="fatura_valor[]"]');
+        const bicos = sumInputs('input[name="bico_valor[]"]');
+
+        const renda = salary + bicos;
+        const gastos = contas + faturas;
+        const saldo = renda - gastos;
+        const percentualGasto = renda > 0 ? gastos / renda : 0;
+
+        let nivel = 'Suave';
+
+        if (percentualGasto >= 0.85 || saldo < 0) {
+            nivel = 'Crítico';
+        } else if (percentualGasto >= 0.60) {
+            nivel = 'Moderado';
+        }
+
+        document.getElementById('previewTotal').textContent = formatMoney(renda);
+        document.getElementById('previewExpenses').textContent = formatMoney(gastos);
+        document.getElementById('previewBalance').textContent = formatMoney(saldo);
+        document.getElementById('previewLevel').textContent = nivel;
+    }
+
+    document.addEventListener('input', updatePreview);
+    document.addEventListener('DOMContentLoaded', updatePreview);
+</script>
+{% endblock %}
