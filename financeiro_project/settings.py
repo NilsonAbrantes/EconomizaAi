@@ -7,7 +7,19 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "economiza.digital",
     "www.economiza.digital",
+    "economiza-ai-lemon.vercel.app",
+    ".vercel.app",
     ".onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://economiza.digital",
+    "https://www.economiza.digital",
+    "https://economiza-ai-lemon.vercel.app",
+    "https://*.vercel.app",
+    "https://*.onrender.com",
 ]
 
 STORAGES = {
