@@ -1,13 +1,45 @@
 from pathlib import Path
+import os
+import dj_database_url
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+    
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=60,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 SECRET_KEY = "django-insecure-financeiro-local-dev"
 DEBUG = True
 ALLOWED_HOSTS = [
     "economiza.digital",
     "www.economiza.digital",
+    "economiza-ai-lemon.vercel.app",
+    ".vercel.app",
     ".onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://economiza.digital",
+    "https://www.economiza.digital",
+    "https://economiza-ai-lemon.vercel.app",
+    "https://*.vercel.app",
+    "https://*.onrender.com",
 ]
 
 STORAGES = {
