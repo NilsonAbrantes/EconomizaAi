@@ -3,6 +3,8 @@ import os
 import dj_database_url
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+    
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 if DATABASE_URL:
     DATABASES = {
@@ -19,8 +21,6 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-    
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-financeiro-local-dev"
 DEBUG = True
