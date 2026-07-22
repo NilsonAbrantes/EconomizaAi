@@ -6,6 +6,11 @@ DATABASE_URL = os.getenv("DATABASE_URL")
     
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+if os.getenv("VERCEL") == "1" and not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL não está disponível neste deployment da Vercel."
+    )
+
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(
