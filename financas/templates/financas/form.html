@@ -54,7 +54,7 @@ Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no ba
             <div class="panel-header">
                 <div>
                     <h3>Contas fixas</h3>
-                    <p>Aluguel, energia, internet, água, mensalidade etc.</p>
+                    <p>Aluguel, internet, mensalidade etc.</p>
                 </div>
                 <button type="button" class="btn btn-soft" onclick="addRow('conta')">+ Conta</button>
             </div>
@@ -106,8 +106,34 @@ Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no ba
     <section class="panel panel-bicos">
         <div class="panel-header">
             <div>
+                <h3>Gastos extras</h3>
+                <p>Cadastre gastos que não estão incluídos nas categorias anteriores.</p>
+            </div>
+            <button type="button" class="btn btn-success" onclick="addRow('gasto')">+ Gasto</button>
+        </div>
+
+        <div id="gastoRows" class="rows">
+            {% for item in gastos %}
+                <div class="item-row">
+                    <input type="text" name="gasto_nome[]" value="{{ item.nome }}" placeholder="Nome do gasto">
+                    <input type="text" name="gasto_valor[]" value="{{ item.valor }}" placeholder="Valor do gasto">
+                    <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                </div>
+            {% empty %}
+                <div class="item-row">
+                    <input type="text" name="gasto_nome[]" placeholder="Ex: slz em dobro">
+                    <input type="text" name="gasto_valor[]" placeholder="Ex: 150,00">
+                    <button type="button" class="btn-remove" onclick="removeRow(this)">×</button>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel panel-bicos">
+        <div class="panel-header">
+            <div>
                 <h3>Bicos adicionados ao saldo</h3>
-                <p>Cadastre a renda extra com nome e valor. Esse valor soma ao salário.</p>
+                <p>Cadastre a renda extra com nome e valor.</p>
             </div>
             <button type="button" class="btn btn-success" onclick="addRow('bico')">+ Bico</button>
         </div>
@@ -169,6 +195,7 @@ Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no ba
         const labels = {
             conta: ['conta_nome[]', 'conta_valor[]', 'Nome da conta', 'Valor'],
             fatura: ['fatura_nome[]', 'fatura_valor[]', 'Nome da fatura', 'Valor'],
+            gasto: ['gasto_nome[]', 'gasto_valor[]', 'Nome do gasto', 'Valor do gasto'],
             bico: ['bico_nome[]', 'bico_valor[]', 'Nome do bico', 'Valor do bico'],
         };
 
@@ -226,9 +253,10 @@ Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no ba
         const contas = sumInputs('input[name="conta_valor[]"]');
         const faturas = sumInputs('input[name="fatura_valor[]"]');
         const bicos = sumInputs('input[name="bico_valor[]"]');
+        const gastosExtras = sumInputs('input[name="gasto_valor[]"]');
 
         const renda = salary + bicos;
-        const gastos = contas + faturas;
+        const gastos = contas + faturas + gastosExtras;
         const saldo = renda - gastos;
         const percentualGasto = renda > 0 ? gastos / renda : 0;
 
