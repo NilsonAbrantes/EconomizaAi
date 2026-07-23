@@ -16,6 +16,7 @@ class RegistroMensalAdmin(admin.ModelAdmin):
         "ano",
         "salario",
         "renda_total",
+        "total_gastos_extras",
         "total_gastos",
         "saldo_final",
         "nivel",

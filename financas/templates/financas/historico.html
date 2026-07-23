@@ -26,6 +26,7 @@
                     <th>Salário</th>
                     <th>Contas</th>
                     <th>Faturas</th>
+                    <th>Gastos extras</th>
                     <th>Renda extra</th>
                     <th>Renda total</th>
                     <th>Gastos</th>
@@ -42,6 +43,7 @@
                         <td>R$ {{ registro.salario }}</td>
                         <td>R$ {{ registro.total_contas }}</td>
                         <td>R$ {{ registro.total_faturas }}</td>
+                        <td>R$ {{ registro.total_gastos_extras }}</td>
                         <td>R$ {{ registro.total_bicos }}</td>
                         <td>R$ {{ registro.renda_total }}</td>
                         <td>R$ {{ registro.total_gastos }}</td>
@@ -59,7 +61,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="11" class="empty">Nenhum mês salvo ainda.</td>
+                        <td colspan="12" class="empty">Nenhum mês salvo ainda.</td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -43,6 +43,10 @@
         <strong>R$ {{ registro.total_faturas }}</strong>
     </div>
     <div class="metric">
+        <span>Gastos extras</span>
+        <strong>R$ {{ registro.total_gastos_extras }}</strong>
+    </div>
+    <div class="metric">
         <span>Recomendação para guardar</span>
         <strong>R$ {{ registro.recomendacao_guardar }}</strong>
     </div>
@@ -82,7 +86,21 @@
     </section>
 
     <section class="panel">
-        <h3>Rendas extras adicionados ao saldo</h3>
+        <h3>Gastos extras</h3>
+        <div class="list-detail">
+            {% for item in gastos %}
+                <div>
+                    <span>{{ item.nome }}</span>
+                    <strong>R$ {{ item.valor }}</strong>
+                </div>
+            {% empty %}
+                <p class="empty-small">Nenhum gasto extra cadastrado.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>Rendas extras adicionadas ao saldo</h3>
         <div class="list-detail">
             {% for item in bicos %}
                 <div>
@@ -90,7 +108,7 @@
                     <strong>R$ {{ item.valor }}</strong>
                 </div>
             {% empty %}
-                <p class="empty-small">Nenhuma renda extra cadastrado.</p>
+                <p class="empty-small">Nenhuma renda extra cadastrada.</p>
             {% endfor %}
         </div>
     </section>

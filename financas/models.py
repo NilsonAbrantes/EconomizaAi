@@ -34,6 +34,11 @@ class RegistroMensal(models.Model):
     salario = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_contas = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_faturas = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_gastos_extras = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+    )
     total_bicos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     renda_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_gastos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -62,12 +67,14 @@ class RegistroMensal(models.Model):
 class ItemFinanceiro(models.Model):
     TIPO_CONTA = "conta"
     TIPO_FATURA = "fatura"
+    TIPO_GASTO = "gasto"
     TIPO_bico = "bico"
 
     TIPO_CHOICES = [
         (TIPO_CONTA, "Conta fixa"),
         (TIPO_FATURA, "Fatura"),
-        (TIPO_bico, "bico"),
+        (TIPO_GASTO, "Gasto extra"),
+        (TIPO_bico, "Renda extra"),
     ]
 
     registro = models.ForeignKey(

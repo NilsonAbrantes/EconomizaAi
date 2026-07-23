@@ -130,13 +130,17 @@ def coletar_itens_post(request, prefixo, tipo):
     return itens
 
 
-def calcular_situacao(salario, contas, faturas, bicos):
+def calcular_situacao(salario, contas, faturas, gastos, bicos):
     total_contas = sum((item["valor"] for item in contas), Decimal("0.00"))
     total_faturas = sum((item["valor"] for item in faturas), Decimal("0.00"))
+    total_gastos_extras = sum(
+        (item["valor"] for item in gastos),
+        Decimal("0.00"),
+    )
     total_bicos = sum((item["valor"] for item in bicos), Decimal("0.00"))
 
     renda_total = salario + total_bicos
-    total_gastos = total_contas + total_faturas
+    total_gastos = total_contas + total_faturas + total_gastos_extras
     saldo_final = renda_total - total_gastos
     recomendacao_guardar = renda_total * Decimal("0.20")
 
@@ -169,6 +173,7 @@ def calcular_situacao(salario, contas, faturas, bicos):
     return {
         "total_contas": total_contas.quantize(Decimal("0.01")),
         "total_faturas": total_faturas.quantize(Decimal("0.01")),
+        "total_gastos_extras": total_gastos_extras.quantize(Decimal("0.01")),
         "total_bicos": total_bicos.quantize(Decimal("0.01")),
         "renda_total": renda_total.quantize(Decimal("0.01")),
         "total_gastos": total_gastos.quantize(Decimal("0.01")),
@@ -206,9 +211,10 @@ def processar_registro(request, registro=None):
 
     contas = coletar_itens_post(request, "conta", ItemFinanceiro.TIPO_CONTA)
     faturas = coletar_itens_post(request, "fatura", ItemFinanceiro.TIPO_FATURA)
+    gastos = coletar_itens_post(request, "gasto", ItemFinanceiro.TIPO_GASTO)
     bicos = coletar_itens_post(request, "bico", ItemFinanceiro.TIPO_bico)
 
-    calculo = calcular_situacao(salario, contas, faturas, bicos)
+    calculo = calcular_situacao(salario, contas, faturas, gastos, bicos)
 
     with transaction.atomic():
         if registro:
@@ -218,6 +224,7 @@ def processar_registro(request, registro=None):
             registro.salario = salario
             registro.total_contas = calculo["total_contas"]
             registro.total_faturas = calculo["total_faturas"]
+            registro.total_gastos_extras = calculo["total_gastos_extras"]
             registro.total_bicos = calculo["total_bicos"]
             registro.renda_total = calculo["renda_total"]
             registro.total_gastos = calculo["total_gastos"]
@@ -236,6 +243,7 @@ def processar_registro(request, registro=None):
                     "salario": salario,
                     "total_contas": calculo["total_contas"],
                     "total_faturas": calculo["total_faturas"],
+                    "total_gastos_extras": calculo["total_gastos_extras"],
                     "total_bicos": calculo["total_bicos"],
                     "renda_total": calculo["renda_total"],
                     "total_gastos": calculo["total_gastos"],
@@ -247,7 +255,7 @@ def processar_registro(request, registro=None):
             )
             registro.itens.all().delete()
 
-        todos_itens = contas + faturas + bicos
+        todos_itens = contas + faturas + gastos + bicos
 
         ItemFinanceiro.objects.bulk_create([
             ItemFinanceiro(
@@ -284,6 +292,7 @@ def novo_registro(request):
         "registro": None,
         "contas": [],
         "faturas": [],
+        "gastos": [],
         "bicos": [],
     }
     return render(request, "financas/form.html", context)
@@ -315,6 +324,7 @@ def editar_registro(request, pk):
         "ano_atual": registro.ano,
         "contas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_CONTA),
         "faturas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_FATURA),
+        "gastos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_GASTO),
         "bicos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_bico),
     }
     return render(request, "financas/form.html", context)
@@ -351,6 +361,7 @@ def detalhes_registro(request, pk):
         "registro": registro,
         "contas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_CONTA),
         "faturas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_FATURA),
+        "gastos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_GASTO),
         "bicos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_bico),
     }
     return render(request, "financas/detalhes.html", context)
@@ -382,7 +393,8 @@ def exportar_csv(request):
         "Salário",
         "Contas fixas",
         "Faturas",
-        "bicos",
+        "Gastos extras",
+        "Rendas extras",
         "Renda total",
         "Total de gastos",
         "Saldo final",
@@ -400,6 +412,7 @@ def exportar_csv(request):
             registro.salario,
             registro.total_contas,
             registro.total_faturas,
+            registro.total_gastos_extras,
             registro.total_bicos,
             registro.renda_total,
             registro.total_gastos,
