@@ -3,12 +3,82 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
+from .forms import CadastroUsuarioForm, LoginForm
 from .models import ItemFinanceiro, RegistroMensal
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("financas:novo")
+
+    next_url = request.POST.get("next") or request.GET.get("next", "")
+    form = LoginForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        email = form.cleaned_data["email"].strip().lower()
+        senha = form.cleaned_data["senha"]
+        usuario = authenticate(request, username=email, password=senha)
+
+        if usuario is not None and usuario.is_active:
+            login(request, usuario)
+            messages.success(request, "Login realizado com sucesso.")
+
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+
+            return redirect("financas:novo")
+
+        form.add_error(None, "E-mail ou senha inválidos.")
+
+    return render(
+        request,
+        "financas/login.html",
+        {"form": form, "next": next_url},
+    )
+
+
+def cadastro_view(request):
+    if request.user.is_authenticated:
+        return redirect("financas:novo")
+
+    form = CadastroUsuarioForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            usuario = form.save()
+        except IntegrityError:
+            form.add_error("email", "Já existe uma conta com este e-mail.")
+        else:
+            login(request, usuario)
+            messages.success(request, "Conta criada com sucesso. Bem-vindo!")
+            return redirect("financas:novo")
+
+    return render(
+        request,
+        "financas/cadastro.html",
+        {"form": form},
+    )
+
+
+@login_required
+@require_POST
+def logout_view(request):
+    logout(request)
+    messages.success(request, "Você saiu da sua conta.")
+    return redirect("financas:login")
 
 
 def moeda_para_decimal(valor):
@@ -122,8 +192,8 @@ def processar_registro(request, registro=None):
     try:
         mes = int(mes)
         ano = int(ano)
-    except ValueError:
-        raise ValueError("Mês e ano precisam ser válidos.")
+    except ValueError as erro:
+        raise ValueError("Mês e ano precisam ser válidos.") from erro
 
     if mes < 1 or mes > 12:
         raise ValueError("Informe um mês válido.")
@@ -136,12 +206,13 @@ def processar_registro(request, registro=None):
 
     contas = coletar_itens_post(request, "conta", ItemFinanceiro.TIPO_CONTA)
     faturas = coletar_itens_post(request, "fatura", ItemFinanceiro.TIPO_FATURA)
-    bicos = coletar_itens_post(request, "bico", ItemFinanceiro.TIPO_BICO)
+    bicos = coletar_itens_post(request, "bico", ItemFinanceiro.TIPO_bico)
 
     calculo = calcular_situacao(salario, contas, faturas, bicos)
 
     with transaction.atomic():
         if registro:
+            registro.usuario = request.user
             registro.mes = mes
             registro.ano = ano
             registro.salario = salario
@@ -158,6 +229,7 @@ def processar_registro(request, registro=None):
             registro.itens.all().delete()
         else:
             registro, _ = RegistroMensal.objects.update_or_create(
+                usuario=request.user,
                 mes=mes,
                 ano=ano,
                 defaults={
@@ -190,6 +262,7 @@ def processar_registro(request, registro=None):
     return registro
 
 
+@login_required
 def novo_registro(request):
     hoje = datetime.now()
 
@@ -216,8 +289,13 @@ def novo_registro(request):
     return render(request, "financas/form.html", context)
 
 
+@login_required
 def editar_registro(request, pk):
-    registro = get_object_or_404(RegistroMensal, pk=pk)
+    registro = get_object_or_404(
+        RegistroMensal,
+        pk=pk,
+        usuario=request.user,
+    )
 
     if request.method == "POST":
         try:
@@ -237,14 +315,15 @@ def editar_registro(request, pk):
         "ano_atual": registro.ano,
         "contas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_CONTA),
         "faturas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_FATURA),
-        "bicos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_BICO),
+        "bicos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_bico),
     }
     return render(request, "financas/form.html", context)
 
 
+@login_required
 def historico(request):
     busca = request.GET.get("busca", "").strip()
-    registros = RegistroMensal.objects.all()
+    registros = RegistroMensal.objects.filter(usuario=request.user)
 
     if busca:
         registros = registros.filter(
@@ -260,29 +339,37 @@ def historico(request):
     return render(request, "financas/historico.html", context)
 
 
+@login_required
 def detalhes_registro(request, pk):
-    registro = get_object_or_404(RegistroMensal, pk=pk)
+    registro = get_object_or_404(
+        RegistroMensal,
+        pk=pk,
+        usuario=request.user,
+    )
 
     context = {
         "registro": registro,
         "contas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_CONTA),
         "faturas": registro.itens.filter(tipo=ItemFinanceiro.TIPO_FATURA),
-        "bicos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_BICO),
+        "bicos": registro.itens.filter(tipo=ItemFinanceiro.TIPO_bico),
     }
     return render(request, "financas/detalhes.html", context)
 
 
+@login_required
+@require_POST
 def excluir_registro(request, pk):
-    registro = get_object_or_404(RegistroMensal, pk=pk)
+    registro = get_object_or_404(
+        RegistroMensal,
+        pk=pk,
+        usuario=request.user,
+    )
+    registro.delete()
+    messages.success(request, "Registro excluído com sucesso.")
+    return redirect("financas:historico")
 
-    if request.method == "POST":
-        registro.delete()
-        messages.success(request, "Registro excluído com sucesso.")
-        return redirect("financas:historico")
 
-    return redirect("financas:detalhes", pk=pk)
-
-
+@login_required
 def exportar_csv(request):
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="historico_financeiro.csv"'
@@ -295,7 +382,7 @@ def exportar_csv(request):
         "Salário",
         "Contas fixas",
         "Faturas",
-        "Bicos",
+        "bicos",
         "Renda total",
         "Total de gastos",
         "Saldo final",
@@ -304,7 +391,9 @@ def exportar_csv(request):
         "Atualizado em",
     ])
 
-    for registro in RegistroMensal.objects.all():
+    registros = RegistroMensal.objects.filter(usuario=request.user)
+
+    for registro in registros:
         writer.writerow([
             registro.get_mes_display(),
             registro.ano,

@@ -11,6 +11,7 @@ class ItemFinanceiroInline(admin.TabularInline):
 @admin.register(RegistroMensal)
 class RegistroMensalAdmin(admin.ModelAdmin):
     list_display = (
+        "usuario",
         "mes",
         "ano",
         "salario",
@@ -20,8 +21,14 @@ class RegistroMensalAdmin(admin.ModelAdmin):
         "nivel",
         "atualizado_em",
     )
-    list_filter = ("ano", "mes", "nivel")
-    search_fields = ("ano", "nivel")
+    list_filter = ("ano", "mes", "nivel", "usuario")
+    search_fields = (
+        "usuario__first_name",
+        "usuario__email",
+        "ano",
+        "nivel",
+    )
+    autocomplete_fields = ("usuario",)
     inlines = [ItemFinanceiroInline]
 
 
@@ -29,4 +36,8 @@ class RegistroMensalAdmin(admin.ModelAdmin):
 class ItemFinanceiroAdmin(admin.ModelAdmin):
     list_display = ("registro", "tipo", "nome", "valor")
     list_filter = ("tipo",)
-    search_fields = ("nome",)
+    search_fields = (
+        "nome",
+        "registro__usuario__first_name",
+        "registro__usuario__email",
+    )

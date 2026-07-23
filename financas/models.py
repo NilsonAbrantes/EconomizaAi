@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -23,6 +24,11 @@ class RegistroMensal(models.Model):
         ("Suave", "Suave"),
     ]
 
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="registros_financeiros",
+    )
     mes = models.PositiveSmallIntegerField(choices=MESES)
     ano = models.PositiveIntegerField()
     salario = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -40,23 +46,28 @@ class RegistroMensal(models.Model):
 
     class Meta:
         ordering = ["-ano", "-mes"]
-        unique_together = ("mes", "ano")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["usuario", "mes", "ano"],
+                name="registro_mensal_unico_por_usuario",
+            )
+        ]
         verbose_name = "Registro mensal"
         verbose_name_plural = "Registros mensais"
 
     def __str__(self):
-        return f"{self.get_mes_display()}/{self.ano}"
+        return f"{self.usuario} - {self.get_mes_display()}/{self.ano}"
 
 
 class ItemFinanceiro(models.Model):
     TIPO_CONTA = "conta"
     TIPO_FATURA = "fatura"
-    TIPO_BICO = "bico"
+    TIPO_bico = "bico"
 
     TIPO_CHOICES = [
         (TIPO_CONTA, "Conta fixa"),
         (TIPO_FATURA, "Fatura"),
-        (TIPO_BICO, "Bico"),
+        (TIPO_bico, "bico"),
     ]
 
     registro = models.ForeignKey(

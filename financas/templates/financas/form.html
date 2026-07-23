@@ -3,7 +3,7 @@
 {% block title %}{{ titulo_pagina }}{% endblock %}
 {% block page_title %}{{ titulo_pagina }}{% endblock %}
 {% block page_subtitle %}
-Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no banco.
+Informe os dados do mês, adicione rendas extras com nome e valor, calcule e salve no banco.
 {% endblock %}
 
 {% block content %}
@@ -132,10 +132,10 @@ Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no ba
     <section class="panel panel-bicos">
         <div class="panel-header">
             <div>
-                <h3>Bicos adicionados ao saldo</h3>
+                <h3>renda extra adicionados ao saldo</h3>
                 <p>Cadastre a renda extra com nome e valor.</p>
             </div>
-            <button type="button" class="btn btn-success" onclick="addRow('bico')">+ Bico</button>
+            <button type="button" class="btn btn-success" onclick="addRow('bico')">+ Saldo</button>
         </div>
 
         <div id="bicoRows" class="rows">
@@ -196,7 +196,7 @@ Informe os dados do mês, adicione bicos com nome e valor, calcule e salve no ba
             conta: ['conta_nome[]', 'conta_valor[]', 'Nome da conta', 'Valor'],
             fatura: ['fatura_nome[]', 'fatura_valor[]', 'Nome da fatura', 'Valor'],
             gasto: ['gasto_nome[]', 'gasto_valor[]', 'Nome do gasto', 'Valor do gasto'],
-            bico: ['bico_nome[]', 'bico_valor[]', 'Nome do bico', 'Valor do bico'],
+            bico: ['bico_nome[]', 'bico_valor[]', 'Nome da renda extra', 'Valor da renda extra'],
         };
 
         const [nameField, valueField, namePlaceholder, valuePlaceholder] = labels[tipo];

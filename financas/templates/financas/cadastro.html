@@ -1,0 +1,64 @@
+{% extends 'financas/auth_base.html' %}
+
+{% block title %}Criar conta | EconomizaAi{% endblock %}
+
+{% block content %}
+<div class="auth-heading">
+    <span>Nova conta</span>
+    <h2>Crie seu acesso</h2>
+    <p>Cadastre seus dados para manter seu histórico financeiro separado.</p>
+</div>
+
+<form method="post" class="auth-form" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="form-error">{{ form.non_field_errors|striptags }}</div>
+    {% endif %}
+
+    <div class="field">
+        <label for="{{ form.nome.id_for_label }}">Nome</label>
+        {{ form.nome }}
+        {% for error in form.nome.errors %}
+            <small class="field-error">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="field">
+        <label for="{{ form.email.id_for_label }}">E-mail</label>
+        {{ form.email }}
+        {% for error in form.email.errors %}
+            <small class="field-error">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="field">
+        <label for="{{ form.password1.id_for_label }}">Senha</label>
+        {{ form.password1 }}
+        {% for error in form.password1.errors %}
+            <small class="field-error">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="field">
+        <label for="{{ form.password2.id_for_label }}">Confirmar senha</label>
+        {{ form.password2 }}
+        {% for error in form.password2.errors %}
+            <small class="field-error">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="password-help">
+        Use pelo menos 8 caracteres e evite senhas comuns ou somente numéricas.
+    </div>
+
+    <button type="submit" class="btn btn-primary auth-submit">
+        Criar minha conta
+    </button>
+</form>
+
+<p class="auth-switch">
+    Já possui uma conta?
+    <a href="{% url 'financas:login' %}">Entrar</a>
+</p>
+{% endblock %}

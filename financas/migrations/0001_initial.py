@@ -148,7 +148,7 @@ class Migration(migrations.Migration):
                         choices=[
                             ("conta", "Conta fixa"),
                             ("fatura", "Fatura"),
-                            ("bico", "Bico"),
+                            ("bico", "bico"),
                         ],
                         max_length=20,
                     ),

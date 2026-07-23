@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EconomizaAi{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'financas/images/logo-economiza-ai-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'financas/style.css' %}">
+</head>
+<body class="auth-body">
+    <main class="auth-shell">
+        <section class="auth-brand-panel">
+            <div class="auth-brand-logo">
+                <img
+                    src="{% static 'financas/images/logo-economiza-ai.png' %}"
+                    alt="EconomizaAi"
+                >
+            </div>
+            <span>CONTROLE FINANCEIRO INTELIGENTE</span>
+            <h1>Organize suas finanças com privacidade.</h1>
+            <p>
+                Cada usuário possui uma conta própria e acessa somente
+                os seus lançamentos financeiros.
+            </p>
+        </section>
+
+        <section class="auth-card">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+</body>
+</html>

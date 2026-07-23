@@ -5,16 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Organização Financeira{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'financas/images/logo-economiza-ai-icon.png' %}">
     <link rel="stylesheet" href="{% static 'financas/style.css' %}">
 </head>
 <body>
     <div class="app-shell">
         <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-icon">R$</div>
-                <div>
-                    <h1>EconomizaAi</h1>
-                </div>
+            <a href="{% url 'financas:novo' %}" class="brand" aria-label="Ir para o início do EconomizaAi">
+                <span class="brand-logo-box">
+                    <img
+                        src="{% static 'financas/images/logo-economiza-ai-icon.png' %}"
+                        alt="Ícone do EconomizaAi"
+                        class="brand-logo-icon"
+                    >
+                </span>
+                <span class="brand-copy">
+                    <strong>EconomizaAi</strong>
+                    <small>Controle financeiro pessoal</small>
+                </span>
+            </a>
+
+            <div class="user-card">
+                <span>Conta conectada</span>
+                <strong>{{ request.user.first_name|default:request.user.email }}</strong>
+                <small>{{ request.user.email }}</small>
             </div>
 
             <nav class="menu">
@@ -22,19 +36,28 @@
                     Novo lançamento
                 </a>
                 <a href="{% url 'financas:historico' %}" class="{% if request.resolver_match.url_name == 'historico' %}active{% endif %}">
-                    Histórico / Planilha
+                    Histórico
                 </a>
             </nav>
 
+            <div class="sidebar-card">
+                Seus lançamentos ficam vinculados à sua conta e não são exibidos
+                para outros usuários.
+            </div>
+
+            <form method="post" action="{% url 'financas:logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">Sair da conta</button>
+            </form>
         </aside>
 
         <main class="content">
             <header class="topbar">
                 <div>
                     <h2>{% block page_title %}Organização Financeira{% endblock %}</h2>
-                    <p>{% block page_subtitle %}Controle salário, contas, faturas e bicos.{% endblock %}</p>
+                    <p>{% block page_subtitle %}Controle salário, contas, faturas e renda extras.{% endblock %}</p>
                 </div>
-                <div class="top-pill">Financeiro Mensal</div>
+                <div class="top-pill">Dado Mensal</div>
             </header>
 
             {% if messages %}

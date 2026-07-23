@@ -23,7 +23,7 @@
         <strong>R$ {{ registro.salario }}</strong>
     </div>
     <div class="metric">
-        <span>Total de bicos</span>
+        <span>Total de extras</span>
         <strong>R$ {{ registro.total_bicos }}</strong>
     </div>
     <div class="metric">
@@ -82,7 +82,7 @@
     </section>
 
     <section class="panel">
-        <h3>Bicos adicionados ao saldo</h3>
+        <h3>Rendas extras adicionados ao saldo</h3>
         <div class="list-detail">
             {% for item in bicos %}
                 <div>
@@ -90,7 +90,7 @@
                     <strong>R$ {{ item.valor }}</strong>
                 </div>
             {% empty %}
-                <p class="empty-small">Nenhum bico cadastrado.</p>
+                <p class="empty-small">Nenhuma renda extra cadastrado.</p>
             {% endfor %}
         </div>
     </section>
